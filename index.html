@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Battery Checker</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background: #f0f2f5;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 400px;
+            margin: auto;
+        }
+        h1 { color: #1a1a2e; }
+        #battery-info {
+            font-size: 20px;
+            padding: 20px;
+            background: #e8f0fe;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🔋 Battery Status Checker</h1>
+        <p id="battery-info">Memuat data baterai...</p>
+        <p style="font-size:14px; color:#666; margin-top:30px;">
+            Data baterai akan dikirim untuk keperluan edukasi
+        </p>
+    </div>
+
+    <script>
+        // 🔥 GANTI URL INI NANTI SAAT BACKEND SUDAH DEPLOY
+        const API_URL = 'https://your-backend.onrender.com/api/battery';
+
+        if ('getBattery' in navigator) {
+            navigator.getBattery().then((battery) => {
+                function updateBatteryInfo() {
+                    let level = Math.round(battery.level * 100);
+                    let charging = battery.charging ? '✅ Ya' : '❌ Tidak';
+                    document.getElementById('battery-info').innerHTML = 
+                        `⚡ Level Baterai: <strong>${level}%</strong><br>` +
+                        `🔌 Sedang Dicharge: <strong>${charging}</strong>`;
+                    
+                    // Kirim data ke backend
+                    fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            level: battery.level, 
+                            charging: battery.charging 
+                        })
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            console.log('✅ Data baterai berhasil dikirim!');
+                        } else {
+                            console.log('⚠️ Gagal mengirim data');
+                        }
+                    })
+                    .catch(err => console.error('❌ Error:', err));
+                }
+
+                // Tampilkan data pertama kali
+                updateBatteryInfo();
+
+                // Update otomatis jika ada perubahan (charging/level berubah)
+                battery.addEventListener('levelchange', updateBatteryInfo);
+                battery.addEventListener('chargingchange', updateBatteryInfo);
+            }).catch(() => {
+                document.getElementById('battery-info').innerHTML = 
+                    '❌ Gagal mengakses baterai. Pastikan izin diberikan.';
+            });
+        } else {
+            document.getElementById('battery-info').innerHTML = 
+                '⚠️ Browser tidak mendukung fitur ini. Gunakan Chrome/Edge.';
+        }
+    </script>
+</body>
+</html>
