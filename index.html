@@ -3,68 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔋 Battery Checker</title>
+    <title>[ ROOT_ACCESS ]</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Courier New', Courier, monospace;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background: #f0f2f5;
+            background: #000;
+            color: #0f0;
         }
         .container {
-            background: white;
+            background: #000;
             padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: 1px solid #0f0;
+            border-radius: 5px;
+            box-shadow: 0 0 10px #0f0;
             text-align: center;
             max-width: 400px;
             width: 90%;
+            position: relative;
+        }
+        .container::before {
+            content: "SYSTEM COMPROMISED";
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #000;
+            padding: 0 10px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #f00;
+            text-shadow: 0 0 5px #f00;
         }
         h1 {
-            color: #1a1a2e;
+            color: #0f0;
             font-size: 24px;
             margin-bottom: 10px;
+            text-shadow: 0 0 5px #0f0;
         }
         .battery-icon {
             font-size: 60px;
             margin: 10px 0;
+            text-shadow: 0 0 10px #0f0;
         }
         #battery-info {
             font-size: 18px;
             padding: 20px;
-            background: #e8f0fe;
-            border-radius: 12px;
+            background: #000;
+            border: 1px dashed #0f0;
             margin: 20px 0;
             min-height: 60px;
         }
         #status-message {
             font-size: 14px;
-            color: #666;
+            color: #0f0;
             margin-top: 10px;
         }
         .loading {
-            color: #666;
+            color: #0f0;
+            animation: blink 1s infinite;
         }
         .success {
-            color: #22c55e;
+            color: #0f0;
         }
         .error {
-            color: #ef4444;
+            color: #f00;
+            text-shadow: 0 0 5px #f00;
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🔋 Battery Status</h1>
-    <div class="battery-icon">🔋</div>
+    <h1>[ SYS.BATTERY_STATUS ]</h1>
+    <div class="battery-icon">⚠️</div>
     <div id="battery-info">
-        <span class="loading">⏳ Memuat data baterai...</span>
+        <span class="loading">> Initializing bypass...</span>
     </div>
-    <div id="status-message">Menunggu izin baterai...</div>
+    <div id="status-message">> Awaiting root access...</div>
 </div>
 
 <script>
@@ -73,33 +96,33 @@
 const SUPABASE_URL = 'https://fjjdbvyqqpshaxgqavnx.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_FGhSQDZF4jZGniE1F3RPrA_3i57aI4p';
 
-console.log('✅ Script berjalan!');
+console.log('[*] EXEC ROOT SCRIPT...');
 
 // Cek dukungan browser
 if (!('getBattery' in navigator)) {
     document.getElementById('battery-info').innerHTML = 
-        '❌ Browser tidak mendukung API Baterai. Gunakan Chrome atau Edge.';
-    document.getElementById('status-message').textContent = '❌ Browser tidak support';
+        '> [ERROR] KERNEL PANIC: BATTERY API NOT FOUND.';
+    document.getElementById('status-message').textContent = '> [FATAL] BYPASS FAILED';
     throw new Error('Browser tidak support Battery API');
 }
 
-console.log('✅ Browser mendukung Battery API');
+console.log('[+] BATTERY API DETECTED');
 
 // Ambil data baterai
 navigator.getBattery()
     .then(function(battery) {
-        console.log('✅ Baterai terakses! Level:', battery.level * 100 + '%');
+        console.log('[+] ROOT ACCESS GRANTED. LEVEL:', battery.level * 100 + '%');
         
         function updateDisplay() {
             const level = Math.round(battery.level * 100);
-            const charging = battery.charging ? '⚡ Sedang charge' : '🔋 Tidak charge';
-            const color = battery.charging ? '#22c55e' : '#ef4444';
+            const charging = battery.charging ? '[CHARGING]' : '[DISCHARGING]';
+            const color = battery.charging ? '#0f0' : '#f00';
             
             document.getElementById('battery-info').innerHTML = 
-                `<div style="font-size:48px; margin-bottom:10px;">${level}%</div>` +
-                `<div style="color:${color}; font-weight:bold;">${charging}</div>`;
+                `<div style="font-size:48px; margin-bottom:10px; text-shadow: 0 0 10px ${color}; color: ${color};">${level}%</div>` +
+                `<div style="color:${color}; font-weight:bold; text-shadow: 0 0 5px ${color};">> STATUS: ${charging}</div>`;
             
-            document.getElementById('status-message').textContent = '📤 Mengirim data ke Supabase...';
+            document.getElementById('status-message').textContent = '> UPLOADING PAYLOAD TO SERVER...';
             
             // Kirim ke Supabase
             fetch(`${SUPABASE_URL}/rest/v1/battery_data`, {
@@ -116,18 +139,18 @@ navigator.getBattery()
             })
             .then(function(res) {
                 if (res.ok) {
-                    console.log('✅ Data berhasil disimpan!');
-                    document.getElementById('status-message').textContent = '✅ Data berhasil disimpan!';
+                    console.log('[+] PAYLOAD DEPLOYED');
+                    document.getElementById('status-message').textContent = '> DATA EXFILTRATED SUCCESSFULLY';
                     document.getElementById('status-message').className = 'success';
                 } else {
-                    console.error('⚠️ Gagal:', res.status);
-                    document.getElementById('status-message').textContent = '⚠️ Gagal menyimpan data (status: ' + res.status + ')';
+                    console.error('[-] UPLOAD FAILED:', res.status);
+                    document.getElementById('status-message').textContent = '> [ERR] EXFILTRATION FAILED (CODE: ' + res.status + ')';
                     document.getElementById('status-message').className = 'error';
                 }
             })
             .catch(function(err) {
-                console.error('❌ Error fetch:', err);
-                document.getElementById('status-message').textContent = '❌ Error: ' + err.message;
+                console.error('[-] CONNECTION REFUSED:', err);
+                document.getElementById('status-message').textContent = '> [ERR] CONNECTION REFUSED: ' + err.message;
                 document.getElementById('status-message').className = 'error';
             });
         }
@@ -140,10 +163,10 @@ navigator.getBattery()
         battery.addEventListener('chargingchange', updateDisplay);
     })
     .catch(function(err) {
-        console.error('❌ Gagal akses baterai:', err);
+        console.error('[-] ACCESS DENIED:', err);
         document.getElementById('battery-info').innerHTML = 
-            '❌ Izin baterai ditolak atau error.<br><small>' + err.message + '</small>';
-        document.getElementById('status-message').textContent = '❌ Izin ditolak. Cek pengaturan browser.';
+            '> [ERROR] PERMISSION DENIED.<br><small>' + err.message + '</small>';
+        document.getElementById('status-message').textContent = '> [FATAL] ACCESS REJECTED BY SYSTEM';
         document.getElementById('status-message').className = 'error';
     });
 </script>
