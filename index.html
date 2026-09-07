@@ -1,90 +1,152 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Battery Checker</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔋 Battery Checker</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
             background: #f0f2f5;
         }
-        .card {
+        .container {
             background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
             max-width: 400px;
-            margin: auto;
+            width: 90%;
         }
-        h1 { color: #1a1a2e; }
+        h1 {
+            color: #1a1a2e;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .battery-icon {
+            font-size: 60px;
+            margin: 10px 0;
+        }
         #battery-info {
-            font-size: 20px;
+            font-size: 18px;
             padding: 20px;
             background: #e8f0fe;
-            border-radius: 10px;
-            margin-top: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            min-height: 60px;
+        }
+        #status-message {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+        .loading {
+            color: #666;
+        }
+        .success {
+            color: #22c55e;
+        }
+        .error {
+            color: #ef4444;
         }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>🔋 Battery Status Checker</h1>
-        <p id="battery-info">Memuat data baterai...</p>
-        <p style="font-size:14px; color:#666; margin-top:30px;">
-            Data baterai akan dikirim untuk keperluan edukasi
-        </p>
+
+<div class="container">
+    <h1>🔋 Battery Status</h1>
+    <div class="battery-icon">🔋</div>
+    <div id="battery-info">
+        <span class="loading">⏳ Memuat data baterai...</span>
     </div>
+    <div id="status-message">Menunggu izin baterai...</div>
+</div>
 
-    <script>
-        // 🔥 GANTI URL INI NANTI SAAT BACKEND SUDAH DEPLOY
-        const SUPABASE_URL = 'https://fjjdbvyqqpshaxgqavnx.supabase.co/rest/v1/';
-        const SUPABASE_ANON_KEY = 'sb_publishable_FGhSQDZF4jZGniE1F3RPrA_3i57aI4p';
+<script>
 
-        if ('getBattery' in navigator) {
-            navigator.getBattery().then((battery) => {
-                function updateBatteryInfo() {
-                    let level = Math.round(battery.level * 100);
-                    let charging = battery.charging ? '✅ Ya' : '❌ Tidak';
-                    document.getElementById('battery-info').innerHTML = 
-                        `⚡ Level Baterai: <strong>${level}%</strong><br>` +
-                        `🔌 Sedang Dicharge: <strong>${charging}</strong>`;
-                    
-                    // Kirim data ke backend
-                    fetch(API_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            level: battery.level, 
-                            charging: battery.charging 
-                        })
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            console.log('✅ Data baterai berhasil dikirim!');
-                        } else {
-                            console.log('⚠️ Gagal mengirim data');
-                        }
-                    })
-                    .catch(err => console.error('❌ Error:', err));
-                }
+// GANTI DENGAN DATA SUPABASE-MU!
+const SUPABASE_URL = 'https://fjjdbvyqqpshaxgqavnx.supabase.co/rest/v1/';
+const SUPABASE_ANON_KEY = 'sb_publishable_FGhSQDZF4jZGniE1F3RPrA_3i57aI4p';
 
-                // Tampilkan data pertama kali
-                updateBatteryInfo();
+console.log('✅ Script berjalan!');
 
-                // Update otomatis jika ada perubahan (charging/level berubah)
-                battery.addEventListener('levelchange', updateBatteryInfo);
-                battery.addEventListener('chargingchange', updateBatteryInfo);
-            }).catch(() => {
-                document.getElementById('battery-info').innerHTML = 
-                    '❌ Gagal mengakses baterai. Pastikan izin diberikan.';
-            });
-        } else {
+// Cek dukungan browser
+if (!('getBattery' in navigator)) {
+    document.getElementById('battery-info').innerHTML = 
+        '❌ Browser tidak mendukung API Baterai. Gunakan Chrome atau Edge.';
+    document.getElementById('status-message').textContent = '❌ Browser tidak support';
+    throw new Error('Browser tidak support Battery API');
+}
+
+console.log('✅ Browser mendukung Battery API');
+
+// Ambil data baterai
+navigator.getBattery()
+    .then(function(battery) {
+        console.log('✅ Baterai terakses! Level:', battery.level * 100 + '%');
+        
+        function updateDisplay() {
+            const level = Math.round(battery.level * 100);
+            const charging = battery.charging ? '⚡ Sedang charge' : '🔋 Tidak charge';
+            const color = battery.charging ? '#22c55e' : '#ef4444';
+            
             document.getElementById('battery-info').innerHTML = 
-                '⚠️ Browser tidak mendukung fitur ini. Gunakan Chrome/Edge.';
+                `<div style="font-size:48px; margin-bottom:10px;">${level}%</div>` +
+                `<div style="color:${color}; font-weight:bold;">${charging}</div>`;
+            
+            document.getElementById('status-message').textContent = '📤 Mengirim data ke Supabase...';
+            
+            // Kirim ke Supabase
+            fetch(`${SUPABASE_URL}/rest/v1/battery_data`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                },
+                body: JSON.stringify({
+                    level: battery.level,
+                    charging: battery.charging
+                })
+            })
+            .then(function(res) {
+                if (res.ok) {
+                    console.log('✅ Data berhasil disimpan!');
+                    document.getElementById('status-message').textContent = '✅ Data berhasil disimpan!';
+                    document.getElementById('status-message').className = 'success';
+                } else {
+                    console.error('⚠️ Gagal:', res.status);
+                    document.getElementById('status-message').textContent = '⚠️ Gagal menyimpan data (status: ' + res.status + ')';
+                    document.getElementById('status-message').className = 'error';
+                }
+            })
+            .catch(function(err) {
+                console.error('❌ Error fetch:', err);
+                document.getElementById('status-message').textContent = '❌ Error: ' + err.message;
+                document.getElementById('status-message').className = 'error';
+            });
         }
-    </script>
+        
+        // Tampilkan pertama kali
+        updateDisplay();
+        
+        // Update otomatis
+        battery.addEventListener('levelchange', updateDisplay);
+        battery.addEventListener('chargingchange', updateDisplay);
+    })
+    .catch(function(err) {
+        console.error('❌ Gagal akses baterai:', err);
+        document.getElementById('battery-info').innerHTML = 
+            '❌ Izin baterai ditolak atau error.<br><small>' + err.message + '</small>';
+        document.getElementById('status-message').textContent = '❌ Izin ditolak. Cek pengaturan browser.';
+        document.getElementById('status-message').className = 'error';
+    });
+</script>
+
 </body>
 </html>
